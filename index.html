@@ -367,10 +367,13 @@ function bossDmg(n,x,y){const b=G.boss;b.hp-=n;b.fl=.1;sfx('bosshit');burst(x,y,
  const ph=b.hp<=b.max*.33?3:b.hp<=b.max*.66?2:1;if(ph>b.ph){b.ph=ph;banner(ph===3?'FINAL ACT!':'IT GETS ANGRIER!','',1.3);sfx('roar');G.shake=.4}
  if(b.hp<=0){b.alive=false;G.phase='bossdie';G.pt=0;G.slow=1.2;sfx('boom');G.flash=1;G.shake=1;stopSong();addScore(1000+Math.max(0,3-G.retries)*500,G.cx+b.x,b.y-b.h/2,'#ffe27a');
   for(let i=0;i<6;i++)setTimeout(()=>{if(!G||!G.boss)return;const bb=bossBox();burst(rnd(bb.x0,bb.x1),rnd(bb.y0,bb.y1),30,[G.sc.c1,G.sc.c2,'#fff','#ffe27a'],520,1);ringFx(rnd(bb.x0,bb.x1),rnd(bb.y0,bb.y1),'#fff',90);sfx('pop')},i*220)}}
+// keep the boss body clear of the landscape touch buttons (bottom-right). Right limit in world units, relative to the camera.
+function bossRightLim(){if(L.port||!L.btnA)return L.visW;return Math.min(L.visW,(L.btnA.x-L.btnA.r-14)/L.k)}
+function bossHomeX(w){const old=L.visW-Math.min(w*.5,L.visW*.24)-10;const lim=bossRightLim()-w*.52-18;return Math.max(Math.min(old,lim),Math.min(old,L.visW*.22+w*.5+170))}
 function updBoss(dt){const b=G.boss,sc=G.sc,fly=sc.mode==='fly',p=G.p;b.t+=dt;b.fl=Math.max(0,b.fl-dt);
- const i=IMG[b.img],w=b.h*(ok(b.img)?i.naturalWidth/i.naturalHeight:1);const homeX=L.visW-Math.min(w*.5,L.visW*.24)-10;
+ const i=IMG[b.img],w=b.h*(ok(b.img)?i.naturalWidth/i.naturalHeight:1);const homeX=bossHomeX(w);
  if(G.phase==='bossin'){b.x=lerp(b.x,homeX,Math.min(1,dt*2.2));if(G.pt>2.6){G.phase='boss';G.pt=0;banner(sc.boss.n,'Boss battle!',2)}return}
- if(G.phase==='bossdie'){b.y+=fly?120*dt:0;b.x+=40*dt;if(G.pt>2.4){G.phase='clear';G.pt=0;sceneClear()}return}
+ if(G.phase==='bossdie'){b.y+=fly?120*dt:0;b.x=Math.min(b.x+40*dt,Math.max(b.x,bossRightLim()-w*.52));if(G.pt>2.4){G.phase='clear';G.pt=0;sceneClear()}return}
  if(!b.alive)return;
  b.x=homeX+Math.sin(b.t*1.3)*18;if(fly)b.y=270+Math.sin(b.t*(.8+b.ph*.25))*150;else b.y=GY-(b.hop>0?Math.sin(b.hop*Math.PI)*90:0);if(b.hop>0)b.hop=Math.max(0,b.hop-dt*1.6);
  b.at-=dt*(1+(b.ph-1)*.35);
@@ -712,7 +715,7 @@ function frame(now){requestAnimationFrame(frame);let dt=Math.min(.05,(now-last)/
   drawWorld();drawHUD();if(G.phase!=='dead'&&G.phase!=='clear')drawControls();if(G.phase==='dead')drawDead();if(G.phase==='clear')drawResult();if(paused)drawPause()}
  else if(state==='title')drawTitle(dt);else if(state==='select')drawSelect();else if(state==='how')drawHow();else if(state==='intro')drawIntro(dt);else if(state==='end')drawEnd(dt);
  if(NAV&&FOC>=UIB.length)FOC=Math.max(0,UIB.length-1);
- if(TOAST){TOAST.t+=dt;const a=Math.min(1,TOAST.t*4,(TOAST.d-TOAST.t)*3);if(TOAST.t>TOAST.d)TOAST=null;else{g.globalAlpha=a;font(16,FR);const tw=g.measureText(TOAST.s).width+36,ty=SAFE.t+(state==='play'?118:12);g.fillStyle='rgba(20,5,40,.92)';rr(W/2-tw/2,ty,tw,40,20);g.fill();g.strokeStyle='#2ff3ff';g.lineWidth=2;g.stroke();txt(TOAST.s,W/2,ty+21,16,'#fff','center',FR);g.globalAlpha=1}}
+ if(TOAST){TOAST.t+=dt;const a=Math.min(1,TOAST.t*4,(TOAST.d-TOAST.t)*3);if(TOAST.t>TOAST.d)TOAST=null;else{g.globalAlpha=a;let tx=W/2,ty=SAFE.t+(state==='play'?118:12),mw=W-24;if(state==='how'){if(H>W){ty=H-SAFE.b-58-52}else{font(34,FS);const hw=g.measureText('How to Play').width;const l0=W/2+hw/2+16;mw=W-SAFE.r-12-l0;tx=l0+mw/2;ty=SAFE.t+20}}font(16,FR);let fs=16,tw0=g.measureText(TOAST.s).width;if(tw0>mw-36){fs=Math.max(11,Math.floor(16*(mw-36)/tw0));font(fs,FR);tw0=g.measureText(TOAST.s).width}const tw=Math.min(mw,tw0+36);g.fillStyle='rgba(20,5,40,.92)';rr(tx-tw/2,ty,tw,40,20);g.fill();g.strokeStyle='#2ff3ff';g.lineWidth=2;g.stroke();txt(TOAST.s,tx,ty+21,fs,'#fff','center',FR);g.globalAlpha=1}}
  if(imgLeft>0&&state==='title'){txt('Loading the reels…',W/2,H/2,18,'#fff','center',FR,'#000',4)}}
 // test hooks (read-only helpers for automated QA)
 window.__T={get state(){return state},get G(){return G},get paused(){return paused},get fps(){return fps},get toast(){return TOAST&&TOAST.s},get nav(){return NAV},get foc(){return FOC},get uib(){return UIB.map(b=>({x:b.x,y:b.y,w:b.w,h:b.h,label:b.label,back:!!b.back}))},L,SCENES,startIntro,skipIntro,startScene:(i)=>{cur=i;go('play');paused=false;startScene(i)},go,save};
