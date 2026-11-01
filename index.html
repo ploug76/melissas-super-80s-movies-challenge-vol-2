@@ -13,7 +13,10 @@ function srand(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s>>>=0;s^=s>>17;s^=s<
 const GY=470,WH=540;            // world ground line and world view height
 // layout: L.view = game viewport in css px; k = css px per world unit
 const L={vx:0,vy:0,vw:0,vh:0,k:1,visW:500,top:0,port:true,panel:0,btnA:null,btnJ:null};
-function layout(){DPR=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';
+/* Peter Oct 31 9:12 PM: iPhone cutoff fix - size to the VISIBLE viewport, re-check often */
+function viewWH(){const vv=window.visualViewport,de=document.documentElement;let w=innerWidth||de.clientWidth,h=innerHeight||de.clientHeight;
+ if(de.clientHeight>0)h=Math.min(h,de.clientHeight);if(vv&&vv.scale>0.99&&vv.scale<1.01){w=Math.min(w,vv.width)||w;h=Math.min(h,vv.height)||h}return[Math.max(1,Math.round(w)),Math.max(1,Math.round(h))]}
+function layout(){DPR=Math.min(2.5,window.devicePixelRatio||1);[W,H]=viewWH();cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';
  const sp=getComputedStyle(document.getElementById('sp'));SAFE={t:parseFloat(sp.paddingTop)||0,b:parseFloat(sp.paddingBottom)||0,l:parseFloat(sp.paddingLeft)||0,r:parseFloat(sp.paddingRight)||0};
  L.port=H>W*1.08;
  if(L.port){L.panel=Math.round(clamp(H*.25,170,250))+SAFE.b;L.vx=0;L.vy=0;L.vw=W;L.vh=H-L.panel;L.k=Math.min(W/500,L.vh/WH*1.0);if(L.vh/L.k<WH)L.k=L.vh/WH;
@@ -25,6 +28,7 @@ function layout(){DPR=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=in
   {const big=clamp(H*.21,72,96),sm=Math.round(big*.82),bot=12+SAFE.b;L.big=sm;L.btnJ={x:W-SAFE.r-14-sm/2,y:H-bot-sm/2,r:sm/2,lab:'JUMP'};L.btnA={x:W-SAFE.r-14-sm-16-sm/2,y:H-bot-sm/2,r:sm/2,lab:'BLAST'}}}
  L.visW=L.vw/L.k;L.top=WH-L.vh/L.k}
 addEventListener('resize',layout);addEventListener('orientationchange',()=>setTimeout(layout,120));layout();
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>layout());setInterval(()=>{const [a,b]=viewWH();if(a!==W||b!==H)layout()},400);
 setTimeout(layout,300);setTimeout(layout,1200);
 // ---- save ----
 const SK='m80v2_save';let save;try{save=JSON.parse(localStorage.getItem(SK))||{}}catch(e){save={}}
