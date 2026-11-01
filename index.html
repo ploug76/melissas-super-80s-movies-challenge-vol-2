@@ -18,11 +18,11 @@ function layout(){DPR=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=in
  L.port=H>W*1.08;
  if(L.port){L.panel=Math.round(clamp(H*.25,170,250))+SAFE.b;L.vx=0;L.vy=0;L.vw=W;L.vh=H-L.panel;L.k=Math.min(W/500,L.vh/WH*1.0);if(L.vh/L.k<WH)L.k=L.vh/WH;
   const bs=clamp(Math.min(W*.27,L.panel*.62),92,140),cy=H-L.panel/2-SAFE.b/2+8;
-  /* Oct 30 9:45 PM (Peter's reference): JUMP big orange bottom-right, BLAST smaller green just left of it and a bit higher */
-  {const ph=L.panel-SAFE.b,big=clamp(ph*.36,92,124),sm=Math.round(big*.84),bot=clamp(ph*.14,18,46)+SAFE.b;L.big=big;
-  L.btnJ={x:W-SAFE.r-16-big/2,y:H-bot-big/2,r:big/2,lab:'JUMP'};L.btnA={x:W-SAFE.r-16-big-14-sm/2,y:Math.max(H-L.panel+30+sm/2,H-bot-big*.42-sm/2),r:sm/2,lab:'BLAST'}}}
+  /* Peter Oct 31 9:10 PM: NES pad - BLAST (green) left, JUMP (orange) right, level, both the old BLAST size */
+  {const ph=L.panel-SAFE.b,big=clamp(ph*.36,92,124),sm=Math.round(big*.84),bot=clamp(ph*.14,18,46)+SAFE.b;L.big=sm;const jy=Math.max(H-L.panel+30+sm/2,H-bot-sm/2);
+  L.btnJ={x:W-SAFE.r-16-sm/2,y:jy,r:sm/2,lab:'JUMP'};L.btnA={x:W-SAFE.r-16-sm-18-sm/2,y:jy,r:sm/2,lab:'BLAST'}}}
  else{L.panel=0;L.vx=0;L.vy=0;L.vw=W;L.vh=H;L.k=H/WH;
-  {const big=clamp(H*.21,72,96),sm=Math.round(big*.82),bot=12+SAFE.b;L.big=big;L.btnJ={x:W-SAFE.r-14-big/2,y:H-bot-big/2,r:big/2,lab:'JUMP'};L.btnA={x:W-SAFE.r-14-big-10-sm/2,y:H-bot-big*.18-sm/2,r:sm/2,lab:'BLAST'}}}
+  {const big=clamp(H*.21,72,96),sm=Math.round(big*.82),bot=12+SAFE.b;L.big=sm;L.btnJ={x:W-SAFE.r-14-sm/2,y:H-bot-sm/2,r:sm/2,lab:'JUMP'};L.btnA={x:W-SAFE.r-14-sm-16-sm/2,y:H-bot-sm/2,r:sm/2,lab:'BLAST'}}}
  L.visW=L.vw/L.k;L.top=WH-L.vh/L.k}
 addEventListener('resize',layout);addEventListener('orientationchange',()=>setTimeout(layout,120));layout();
 setTimeout(layout,300);setTimeout(layout,1200);
